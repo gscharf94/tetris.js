@@ -26,13 +26,13 @@ class GameApp {
 
         this.gameGrid.initGrid();
         this.gameGrid.spawnBlock();
+        this.gameGrid.score = 0;
 
         pauseButton = window.setInterval("game.gameTick()", 50);
     }
 
     speedUp() {
-        this.currentSpeed *= .95;
-        // console.log(`speeding up to: ${this.currentSpeed}`);
+        this.currentSpeed *= .99;
     }
 
     pause() {
@@ -66,12 +66,15 @@ class GameApp {
 class GameGrid {
     constructor(canvasDrawer) {
         this.canvasDrawer = canvasDrawer;
+        this.first = true;
         
         this.initGrid();
         this.spawnBlock();
 
+        this.score = 0;
         this.canvasDrawer.drawGrid(this.grid);
-        // this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+        this.canvasDrawer.drawScore(this.score);
+
 
     }
 
@@ -101,8 +104,15 @@ class GameGrid {
         this.addCoords(blockCoords, blockType, this.grid);
         this.canvasDrawer.drawGrid(this.grid);
         this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+        this.canvasDrawer.drawScore(this.score);
 
         this.checkLoseCondition();
+
+        if(this.first === true) {
+            this.first = false;
+        } else {
+            game.speedUp();
+        }
     }
 
     checkLoseCondition() {
@@ -161,6 +171,12 @@ class GameGrid {
 
     }
 
+    addScore(c) {
+        let speed = game.currentSpeed;
+        let newScore = Math.round((c*150)/speed);
+        this.score += newScore;
+    }
+
     checkRow(row) {
         let col;
 
@@ -174,12 +190,15 @@ class GameGrid {
 
     checkRows() {
         let row;
+        let count = 0;
 
         for(row = 0; row < 20; row++) {
             if(this.checkRow(row) == true) {
+                count++;
                 this.removeLine(row);
             }
         }
+        this.addScore(count);
     }
     
     removeLine(row) {
@@ -248,6 +267,7 @@ class GameGrid {
             this.activeBlock.updatePos(potentialCoords);
             this.canvasDrawer.drawGrid(this.grid);
             this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+            this.canvasDrawer.drawScore(this.score);
         } else {
             this.addCoords(currentCoords, this.activeBlock.type, this.grid);
             this.spawnBlock();
@@ -270,6 +290,7 @@ class GameGrid {
             this.activeBlock.updatePos(potentialCoords);
             this.canvasDrawer.drawGrid(this.grid);
             this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+            this.canvasDrawer.drawScore(this.score);
         } else {
             // console.log('illegal move');
         }
@@ -290,6 +311,7 @@ class GameGrid {
             this.addCoords(potentialCoords, this.activeBlock.type, this.grid);
             this.canvasDrawer.drawGrid(this.grid);
             this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+            this.canvasDrawer.drawScore(this.score);
         } else {
             this.activeBlock.rotateBack();
         }
@@ -562,6 +584,12 @@ class CanvasDrawer {
         canv.fillText("GAME OVER", 33, 100);
         canv.font = "18px Arial";
         canv.fillText("Press n to play again...", 35, 125);
+    }
+
+    drawScore(score) {
+        canv.font = "10px Arial";
+        canv.fillStyle = "white";
+        canv.fillText(`${score} pts`,2,10);
     }
 }
 
