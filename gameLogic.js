@@ -20,6 +20,16 @@ class GameApp {
 
     }
 
+    restartGame() {
+        this.currentSpeed = .5;
+        this.paused = false;
+
+        this.gameGrid.initGrid();
+        this.gameGrid.spawnBlock();
+
+        pauseButton = window.setInterval("game.gameTick()", 50);
+    }
+
     speedUp() {
         this.currentSpeed *= .95;
         // console.log(`speeding up to: ${this.currentSpeed}`);
@@ -91,6 +101,30 @@ class GameGrid {
         this.addCoords(blockCoords, blockType, this.grid);
         this.canvasDrawer.drawGrid(this.grid);
         this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
+
+        this.checkLoseCondition();
+    }
+
+    checkLoseCondition() {
+        let currentCoords = this.activeBlock.getCurrentCoords();
+        let potentialCoords = this.activeBlock.downMove();
+
+        this.addCoords(currentCoords, -1, this.grid);
+
+        let noCollision = this.testCollision(potentialCoords, this.grid);
+
+        if(noCollision === true) {
+            return;
+        } else {
+            game.paused = true;
+            this.gameOver();
+        }    
+    }
+
+    gameOver() {
+        clearInterval(pauseButton);
+        this.canvasDrawer.drawGameOver();
+        game.isGameOver = true;
     }
 
     addCoords(coords, blockType, grid) {
@@ -395,6 +429,8 @@ class InputHandler {
             game.gameGrid.setActiveDown();
         } else if(event.keyCode == 80) {
             game.pause();
+        } else if(event.keyCode == 78 && game.isGameOver == true) {
+            game.restartGame();
         }
     }
 
@@ -518,6 +554,14 @@ class CanvasDrawer {
         canv.font = "30px Arial";
         canv.fillStyle = "white";
         canv.fillText("GAME PAUSED", 18,100);
+    }
+
+    drawGameOver() {
+        canv.font = "30px Arial";
+        canv.fillStyle = "white";
+        canv.fillText("GAME OVER", 33, 100);
+        canv.font = "18px Arial";
+        canv.fillText("Press n to play again...", 35, 125);
     }
 }
 
