@@ -29,9 +29,12 @@ class GameApp {
         if(this.paused === false) {
             clearInterval(pauseButton);
             this.paused = true;
+            this.canvasDrawer.drawPause();
         } else {
             pauseButton = window.setInterval("game.gameTick()", 50);
             this.paused = false;
+            // this.canvasDrawer.drawGrid(this.grid);
+            // this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
         }
     }
 
@@ -413,7 +416,7 @@ class InputHandler {
             if (yDiff < 0) {
                 console.log('up');
             } else {
-                let obj = {keyCode:83}
+                let obj = {keyCode:32}
                 game.inputHandler.keydownInput(obj);
             }
         } else if(Math.abs(xDiff) < 35 && Math.abs(yDiff) < 35) {
@@ -509,6 +512,12 @@ class CanvasDrawer {
 
             this.drawBlock(x, y, type, true);
         }
+    }
+
+    drawPause() {
+        canv.font = "30px Arial";
+        canv.fillStyle = "white";
+        canv.fillText("GAME PAUSED", 18,100);
     }
 }
 
