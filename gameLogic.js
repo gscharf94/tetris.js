@@ -342,19 +342,13 @@ class InputHandler {
 
         // console.log(xDiff, yDiff);
 
-        if(Math.abs(xDiff) > Math.abs(yDiff)) {
+        if(Math.abs(xDiff) > Math.abs(yDiff*1.5)) {
             if(xDiff < 0) {
                 let obj = {keyCode:65};
                 game.inputHandler.keydownInput(obj);
-                if(xDiff < Math.abs(yDiff*2)) {
-                    game.inputHandler.keydownInput(obj);
-                }
             } else {
                 let obj = {keyCode:68};
                 game.inputHandler.keydownInput(obj);
-                if(xDiff > Math.abs(yDiff*2)) {
-                    game.inputHandler.keydownInput(obj);
-                }
             }
         } else if(Math.abs(yDiff) > Math.abs(4*xDiff)) {
             if (yDiff < 0) {
