@@ -46,7 +46,6 @@ class GameApp {
 
         }
         // this.canvasDrawer.drawGrid(this.gameGrid.grid);
-        
     }
 
 }
@@ -59,6 +58,7 @@ class GameGrid {
         this.spawnBlock();
 
         this.canvasDrawer.drawGrid(this.grid);
+        // this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
 
     }
 
@@ -85,11 +85,12 @@ class GameGrid {
         // let blockType = 0;
         this.activeBlock = new Block(1,4,blockType);
         let blockCoords = this.activeBlock.getCurrentCoords();
-        this.addCoords(blockCoords, blockType);
+        this.addCoords(blockCoords, blockType, this.grid);
         this.canvasDrawer.drawGrid(this.grid);
+        this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
     }
 
-    addCoords(coords, blockType) {
+    addCoords(coords, blockType, grid) {
         // adds coords to this.grid AFTER it has been checked
         let i, row, col;
 
@@ -97,11 +98,11 @@ class GameGrid {
             row = coords[i][0];
             col = coords[i][1];
 
-            this.grid[row][col] = blockType;
+            grid[row][col] = blockType;
         }
     }
     
-    testCollision(newCoords) {
+    testCollision(newCoords, grid) {
         let i, row, col, gridVal;
 
         for(i = 0; i < newCoords.length; i++) {
@@ -114,7 +115,7 @@ class GameGrid {
                 return false;
             }
 
-            gridVal = this.grid[row][col];
+            gridVal = grid[row][col];
             if(gridVal !== -1) {
                 return false;
             }
@@ -162,20 +163,56 @@ class GameGrid {
 
     }
 
+    getBottomCoords() {
+        let row = this.activeBlock.row;
+        let col = this.activeBlock.col;
+
+        while(true) {
+            let currentCoords = this.activeBlock.getDiffCoords(row, col);
+            let potentialCoords = this.activeBlock.downMoveDiffCoords(row, col);
+
+            let gridCopy = this.grid.slice();
+            this.addCoords(currentCoords, -1, gridCopy);
+
+            let noCollision = this.testCollision(potentialCoords, gridCopy);
+
+            if(noCollision === true) {
+                row++;
+                continue;
+            } else {
+                potentialCoords = this.activeBlock.getDiffCoords(row, col);
+                return potentialCoords;
+            }
+
+
+        }
+    }
+
+    setActiveDown() {
+        let bottomCoords = this.getBottomCoords();
+        let currentCoords = this.activeBlock.getCurrentCoords();
+        this.addCoords(currentCoords, -1, this.grid);
+        this.addCoords(bottomCoords, this.activeBlock.type, this.grid);
+
+        this.spawnBlock();
+        this.checkRows();
+    }
+
     moveActiveDown() {
         let currentCoords = this.activeBlock.getCurrentCoords();
         let potentialCoords = this.activeBlock.downMove();
 
-        this.addCoords(currentCoords, -1);
+        this.addCoords(currentCoords, -1, this.grid);
 
-        let noCollision = this.testCollision(potentialCoords);
+        let noCollision = this.testCollision(potentialCoords, this.grid);
 
         if(noCollision === true) {
-            this.addCoords(potentialCoords, this.activeBlock.type);
+            this.addCoords(potentialCoords, this.activeBlock.type, this.grid);
             this.activeBlock.updatePos(potentialCoords);
             this.canvasDrawer.drawGrid(this.grid);
+            this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
         } else {
-            this.addCoords(currentCoords, this.activeBlock.type);
+            this.addCoords(currentCoords, this.activeBlock.type, this.grid);
             this.spawnBlock();
             this.checkRows();
         }    
@@ -187,14 +224,15 @@ class GameGrid {
         let currentCoords = this.activeBlock.getCurrentCoords();
         let potentialCoords = this.activeBlock.horizontalMove(dir);
 
-        this.addCoords(currentCoords, -1);
+        this.addCoords(currentCoords, -1, this.grid);
 
-        let noCollision = this.testCollision(potentialCoords);
+        let noCollision = this.testCollision(potentialCoords, this.grid);
 
         if(noCollision === true) {
-            this.addCoords(potentialCoords, this.activeBlock.type);
+            this.addCoords(potentialCoords, this.activeBlock.type, this.grid);
             this.activeBlock.updatePos(potentialCoords);
             this.canvasDrawer.drawGrid(this.grid);
+            this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
         } else {
             // console.log('illegal move');
         }
@@ -202,19 +240,19 @@ class GameGrid {
     }
 
     rotateActiveBlock() {
-        
         let currentCoords = this.activeBlock.getCurrentCoords();
         this.activeBlock.rotate();
         let potentialCoords = this.activeBlock.getCurrentCoords();
 
-        this.addCoords(currentCoords, -1);
+        this.addCoords(currentCoords, -1, this.grid);
 
-        let noCollision = this.testCollision(potentialCoords);
+        let noCollision = this.testCollision(potentialCoords, this.grid);
 
 
         if(noCollision === true) {
-            this.addCoords(potentialCoords, this.activeBlock.type);
+            this.addCoords(potentialCoords, this.activeBlock.type, this.grid);
             this.canvasDrawer.drawGrid(this.grid);
+            this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
         } else {
             this.activeBlock.rotateBack();
         }
@@ -295,6 +333,27 @@ class Block {
         return currentCoords;    
     }
 
+    getDiffCoords(row, col) {
+        let coords = [[row, col]];
+        let i, cRow, cCol;
+        for(i = 0; i < this.currentTemplate.length; i++) {
+            cRow = this.currentTemplate[i][0] + row;
+            cCol = this.currentTemplate[i][1] + col;
+            coords.push([cRow, cCol]);
+        }
+        return coords;
+    }
+
+    downMoveDiffCoords(row, col) {
+        // moves coords down with specific coords first
+        let coords = this.getDiffCoords(row, col);
+        let i;
+        for(i = 0; i < coords.length; i++) {
+            coords[i][0]++;
+        }
+        return coords;
+    }
+
     horizontalMove(dir) {
         // moves left or right and returns wanted position
         // -1 left | 1 right
@@ -330,7 +389,7 @@ class InputHandler {
         } else if(event.keyCode == 83 && game.paused == false) {
             game.gameGrid.moveActiveDown();
         } else if(event.keyCode == 32 && game.paused == false) {
-            game.gameGrid.spawnBlock();
+            game.gameGrid.setActiveDown();
         } else if(event.keyCode == 80) {
             game.pause();
         }
@@ -405,12 +464,16 @@ class CanvasDrawer {
 
     }
 
-    drawBlock(x, y, type) {
-        const colors = ['blue','green','red','purple','yellow','orange','pink'];
+    drawBlock(x, y, type, ghost) {
+        const colors = ['rgba(40, 116, 166','rgba(125, 60, 152','rgba(146, 43, 33','rgba(144, 148, 151','rgba(183, 149, 11','rgba(34, 153, 84','rgba(52, 73, 94'];
 
         canv.beginPath();
         canv.rect(x,y,this.blockWidth,this.blockHeight);
-        canv.fillStyle = colors[type];
+        if(ghost) {
+            canv.fillStyle = colors[type] + ", .25)";
+        } else{
+            canv.fillStyle = colors[type] + ", 1)";
+        }
         canv.fill();
     }
 
@@ -428,15 +491,28 @@ class CanvasDrawer {
                 type = grid[row][col];
 
                 if(grid[row][col] != -1) {
-                    this.drawBlock(x, y, type);
+                    this.drawBlock(x, y, type, false);
                 }
             }
         }
+    }
 
+    drawGhostBlocks(coords, type) {
+        let i, row, col;
+        let x, y;
+        for(i= 0; i < coords.length; i++) {
+            row = coords[i][0];
+            col = coords[i][1];
+
+            x = col * this.blockWidth;
+            y = row * this.blockHeight;
+
+            this.drawBlock(x, y, type, true);
+        }
     }
 }
 
 
 game = new GameApp();
 
-pauseButton = window.setInterval("game.gameTick()", 10);
+pauseButton = window.setInterval("game.gameTick()", 500);
