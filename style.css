@@ -13,7 +13,7 @@ canvas {
     height: 80vh;
     display: block;
     margin-left: auto;
-    margin-right: auto;
+    margin-right: 0;
     touch-action: none;
 }
 
@@ -26,4 +26,43 @@ h1 {
     text-align: center;
     font-family: Arial, Helvetica, sans-serif;
     color: darkblue;
+}
+
+table {
+    margin-right: auto;
+    border-collapse: collapse;
+    width: 25%;
+}
+
+tr {
+    height: 5vh;
+}
+
+th {
+    background-color: rgb(34, 34, 34);
+    color: white;
+}
+
+table, tr, td {
+    border: 1px solid black;
+    text-align: center;
+}
+
+td {
+    font-size: 1.25rem;
+    height: 5vh;
+    background-color: rgb(170, 170, 170);
+}
+
+th {
+    text-align: center;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+
+
 }

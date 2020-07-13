@@ -1,8 +1,79 @@
 canvas = document.getElementById("canv");
 canv = canvas.getContext("2d");
 
+const Http = new XMLHttpRequest();
+const displayURL = "https://blooming-reaches-62726.herokuapp.com/update/display"
+const updateURL =  "https://blooming-reaches-62726.herokuapp.com/update/update"
+
+function updateScore(user, score) {
+    Http.open("POST", updateURL);
+    Http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    Http.send(`username=${user}&score=${score}`);
+
+    Http.onreadystatechange=(e)=>{
+        console.log(Http.responseText);
+        writeToTable(Http.responseText);
+    }
+}
+
+function writeToTable(text) {
+    let split = text.slice(0,text.length-1).split(",");
+    let i;
+
+    if(split[0] === "") {
+        return;
+    }
+
+    console.log(split);
+    console.log(split.length);
+    for(i=0; i<split.length; i++) {
+        let curRow = document.getElementById("table"+i);
+        let split2 = split[i].split(":");
+        let user = split2[0].toUpperCase();
+        let score = split2[1];
+
+        let firstStr = `<td>${user}</td>`;
+        let secondStr = `<td>${score}</td>`;
+
+        curRow.innerHTML = firstStr + secondStr;
+    }
+}
+
+function getDisplayRawData() {
+    Http.open("GET", displayURL);
+    Http.send();
+
+    let records = [];
+
+    Http.onreadystatechange=(e)=>{
+        writeToTable(Http.responseText);
+    }
+    return records;
+}
+
+
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
+}
+
+function checkForSmallScreen() {
+    let clientWidth = document.documentElement.clientWidth;
+    let clientHeight = document.documentElement.clientHeight;
+    
+    let table = document.getElementById("scoreTable");
+    let container = document.getElementById("flex_container")
+
+    if(clientWidth < 580) {
+        container.style.display = "block";
+        canvas.style.marginRight = "auto";
+        table.style.marginLeft = "auto";
+        table.style.width = "75%";
+    } else {
+        container.style.display = "flex";
+        canvas.style.marginRight = "1.5vw";
+        table.style.marginLeft = "0";
+        table.style.width = "25%";
+    }
 }
 
 class GameApp {
@@ -18,6 +89,13 @@ class GameApp {
 
         this.paused = false;
 
+    }
+
+    saveHighScore() {
+        if(this.gameGrid.score > 0) {
+            let username = window.prompt("HIGH SCORE","Please enter name");
+            updateScore(username, this.gameGrid.score);
+        }
     }
 
     restartGame() {
@@ -135,6 +213,7 @@ class GameGrid {
         clearInterval(pauseButton);
         this.canvasDrawer.drawGameOver();
         game.isGameOver = true;
+        game.saveHighScore();
     }
 
     addCoords(coords, blockType, grid) {
@@ -596,4 +675,6 @@ class CanvasDrawer {
 
 game = new GameApp();
 
-pauseButton = window.setInterval("game.gameTick()", 500);
+pauseButton = window.setInterval("game.gameTick()", 50);
+window.setInterval("checkForSmallScreen()", 750);
+getDisplayRawData();
