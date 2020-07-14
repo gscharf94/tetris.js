@@ -31,7 +31,6 @@ function updateScore(user, score) {
     Http.send(`username=${user}&score=${score}`);
 
     Http.onreadystatechange=(e)=>{
-        console.log(Http.responseText);
         writeToTable(Http.responseText);
     }
 }
@@ -45,10 +44,6 @@ function writeToTable(text) {
     }
 
     split = sortArray(split).slice(0,10);
-    console.log(`OVER HERE: ${split}`);
-
-    console.log(split);
-    console.log(split.length);
     for(i=0; i<split.length; i++) {
         let curRow = document.getElementById("table"+i);
         let split2 = split[i].split(":");
@@ -393,8 +388,6 @@ class GameGrid {
             this.canvasDrawer.drawGrid(this.grid);
             this.canvasDrawer.drawGhostBlocks(this.getBottomCoords(), this.activeBlock.type);
             this.canvasDrawer.drawScore(this.score);
-        } else {
-            // console.log('illegal move');
         }
 
     }
@@ -562,8 +555,6 @@ class InputHandler {
         let xDiff = game.inputHandler.endTouch.x - game.inputHandler.startTouch.x;
         let yDiff = game.inputHandler.endTouch.y - game.inputHandler.startTouch.y;
 
-        // console.log(xDiff, yDiff);
-
         if(Math.abs(xDiff) > Math.abs(yDiff*1.5)) {
             if(xDiff < 0) {
                 let obj = {keyCode:65};
@@ -574,7 +565,6 @@ class InputHandler {
             }
         } else if(Math.abs(yDiff) > Math.abs(4*xDiff)) {
             if (yDiff < 0) {
-                console.log('up');
             } else {
                 let obj = {keyCode:32}
                 game.inputHandler.keydownInput(obj);
@@ -582,8 +572,6 @@ class InputHandler {
         } else if(Math.abs(xDiff) < 35 && Math.abs(yDiff) < 35) {
             let obj = {keyCode:87};
             game.inputHandler.keydownInput(obj);
-        } else {
-            console.log('who knows');
         }
     }
 
