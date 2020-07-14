@@ -5,6 +5,26 @@ const Http = new XMLHttpRequest();
 const displayURL = "https://blooming-reaches-62726.herokuapp.com/update/display"
 const updateURL =  "https://blooming-reaches-62726.herokuapp.com/update/update"
 
+function sortArray(arr) {
+    let i, j;
+    for(i = 0; i < arr.length; i++) {
+        let smallest = arr[i].split(":")[1];
+        let smallestIndex = i;
+        for(j = i + 1; j < arr.length; j++) {
+            let test = arr[j].split(":")[1];
+            if(parseInt(test) > parseInt(smallest)) {
+                smallest = test;
+                smallestIndex = j;
+            }
+        }
+        let itemCopy = arr[smallestIndex];
+        arr.splice(smallestIndex,1);
+        arr.splice(i, 0, itemCopy);
+    }
+    return arr;
+}
+
+
 function updateScore(user, score) {
     Http.open("POST", updateURL);
     Http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -23,6 +43,9 @@ function writeToTable(text) {
     if(split[0] === "") {
         return;
     }
+
+    split = sortArray(split).slice(0,10);
+    console.log(`OVER HERE: ${split}`);
 
     console.log(split);
     console.log(split.length);
